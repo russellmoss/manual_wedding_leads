@@ -23,4 +23,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # Ignore the milea-chatbot-dashboard folder
-../milea-chatbot-dashboard/ 
+../milea-chatbot-dashboard/
+
+# Environment variables
+.env
+.env.development
+.env.production 
