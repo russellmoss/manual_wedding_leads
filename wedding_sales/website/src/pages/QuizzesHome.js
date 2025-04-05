@@ -1,9 +1,26 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import ContentPage from '../components/layout/ContentPage';
 import QuizProgress from '../components/quizzes/QuizProgress';
+import { useCompletedQuizzes } from '../hooks/useCompletedQuizzes';
 
 function QuizzesHome() {
+  const location = useLocation();
+  const { 
+    completedQuizzes, 
+    isLoading, 
+    isQuizCompleted, 
+    refreshCompletedQuizzes 
+  } = useCompletedQuizzes();
+
+  // Refresh completed quizzes when returning from a quiz completion
+  useEffect(() => {
+    if (location.state?.refreshQuizzes) {
+      console.log('Refreshing completed quizzes due to navigation state');
+      refreshCompletedQuizzes();
+    }
+  }, [location.state?.refreshQuizzes, refreshCompletedQuizzes]);
+
   const categories = [
     {
       id: 'weddings',
@@ -148,27 +165,51 @@ function QuizzesHome() {
           </p>
         </div>
 
-        {categories.map(category => (
-          <div key={category.id} className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-gilda text-darkBrown mb-4">{category.title}</h2>
-            <p className="text-gray-700 mb-6">{category.description}</p>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              {category.quizzes.map(quiz => (
-                <div key={quiz.id} className="bg-gray-50 p-4 rounded-lg hover:shadow-md transition-shadow">
-                  <h3 className="text-lg font-medium text-darkBrown mb-2">{quiz.title}</h3>
-                  <p className="text-gray-600 mb-4">{quiz.description}</p>
-                  <Link
-                    to={quiz.path}
-                    className="inline-block bg-darkBrown text-white px-4 py-2 rounded hover:bg-brown transition-colors"
-                  >
-                    Take Quiz
-                  </Link>
-                </div>
-              ))}
-            </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
-        ))}
+        ) : (
+          <>
+            <QuizProgress />
+            
+            {categories.map(category => (
+              <div key={category.id} className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-2xl font-gilda text-darkBrown mb-4">{category.title}</h2>
+                <p className="text-gray-700 mb-6">{category.description}</p>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  {category.quizzes.map(quiz => {
+                    const isCompleted = isQuizCompleted(category.id, quiz.id);
+                    return (
+                      <div key={quiz.id} className="bg-gray-50 p-4 rounded-lg hover:shadow-md transition-shadow relative">
+                        {isCompleted && (
+                          <div className="absolute top-2 right-2 text-green-500 text-xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                        <h3 className="text-lg font-medium text-darkBrown mb-2">{quiz.title}</h3>
+                        <p className="text-gray-600 mb-4">{quiz.description}</p>
+                        <Link
+                          to={quiz.path}
+                          className={`inline-block px-4 py-2 rounded transition-colors ${
+                            isCompleted 
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                              : 'bg-darkBrown text-white hover:bg-brown'
+                          }`}
+                        >
+                          {isCompleted ? 'Review Quiz' : 'Take Quiz'}
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </ContentPage>
   );

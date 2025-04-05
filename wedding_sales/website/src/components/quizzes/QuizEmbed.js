@@ -1,54 +1,56 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ContentPage from '../layout/ContentPage';
-import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../firebase/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 import QuizCompletionButton from './QuizCompletionButton';
+import { useCompletedQuizzes } from '../../hooks/useCompletedQuizzes';
 
 function QuizEmbed() {
   const { category, quizId } = useParams();
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showCompletionMessage, setShowCompletionMessage] = useState(false);
-  const { currentUser } = useAuth();
   const navigate = useNavigate();
-  
-  // Get the quiz title based on the category and ID
-  const getQuizTitle = (category, id) => {
-    const titles = {
-      weddings: {
-        'venue-overview': 'Venue Overview Quiz',
-        'clubhouse': 'The Clubhouse Quiz',
-        'farmhouse': 'The Farmhouse Quiz',
-        'event-planning': 'Event Planning Quiz',
-        'food-and-wine': 'Food & Wine Quiz',
-        'drink-packages': 'Drink Packages Quiz',
-        'accommodations': 'Accommodations Quiz',
-        'associated-events': 'Associated Events Quiz',
-        'preferred-vendors': 'Preferred Vendors Quiz',
-        'faq': 'FAQ Quiz'
-      },
-      sales: {
-        'overview': 'Sales Overview Quiz',
-        'inquiry-response': 'Inquiry Response Quiz',
-        'qualification': 'Qualification Quiz',
-        'venue-tour': 'Venue Tour Quiz',
-        'proposal': 'Proposal Quiz',
-        'follow-up': 'Follow Up Quiz',
-        'closing': 'Closing Quiz',
-        'post-booking': 'Post-Booking Quiz',
-        'crm-tips': 'CRM Tips Quiz'
-      }
+  const { isQuizCompleted } = useCompletedQuizzes();
+  const [quizTitle, setQuizTitle] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Set the quiz title based on the category and quizId
+    const getQuizTitle = () => {
+      const titles = {
+        'weddings': {
+          'venue-overview': 'Venue Overview Quiz',
+          'clubhouse': 'The Clubhouse Quiz',
+          'farmhouse': 'The Farmhouse Quiz',
+          'event-planning': 'Event Planning Quiz',
+          'food-and-wine': 'Food & Wine Quiz',
+          'drink-packages': 'Drink Packages Quiz',
+          'accommodations': 'Accommodations Quiz',
+          'associated-events': 'Associated Events Quiz',
+          'preferred-vendors': 'Preferred Vendors Quiz',
+          'faq': 'FAQ Quiz'
+        },
+        'sales': {
+          'overview': 'Sales Overview Quiz',
+          'inquiry-response': 'Inquiry Response Quiz',
+          'qualification': 'Qualification Quiz',
+          'venue-tour': 'Venue Tour Quiz',
+          'proposal': 'Proposal Quiz',
+          'follow-up': 'Follow Up Quiz',
+          'closing': 'Closing Quiz',
+          'post-booking': 'Post-Booking Quiz',
+          'crm-tips': 'CRM Tips Quiz'
+        }
+      };
+
+      return titles[category]?.[quizId] || 'Quiz';
     };
-    
-    return titles[category]?.[id] || 'Quiz';
-  };
-  
-  // Get the iframe source based on the category and ID
-  const getQuizIframe = (category, id) => {
+
+    setQuizTitle(getQuizTitle());
+    setIsLoading(false);
+  }, [category, quizId]);
+
+  // Get the iframe source based on the category and quizId
+  const getIframeSource = () => {
     const iframes = {
-      weddings: {
+      'weddings': {
         'venue-overview': 'https://docs.google.com/forms/d/e/1FAIpQLSedB1Ru9Ri0BJEKlvd1QAVC0TQrI4i2db1_UAvOGpfWX8wfTw/viewform?embedded=true',
         'clubhouse': 'https://docs.google.com/forms/d/e/1FAIpQLSfW2ATVuT7YiVdwLz3lu2lC6sTYI8b9yz9rNjXhw_H7wM3qoA/viewform?embedded=true',
         'farmhouse': 'https://docs.google.com/forms/d/e/1FAIpQLSfWI2R53LdlKYwy81GXUah2bH-FoVNumUrudHygwwGdtiZ2dw/viewform?embedded=true',
@@ -59,9 +61,8 @@ function QuizEmbed() {
         'associated-events': 'https://docs.google.com/forms/d/e/1FAIpQLSegD-VavyLQyht0pw3U_mToiLBzZn8sDMbi8yS9yK3aOlQRhA/viewform?embedded=true',
         'preferred-vendors': 'https://docs.google.com/forms/d/e/1FAIpQLSfB3IxiI1IE5aEt2EDdDthTYn7l--5DuuMC4xS9q1w0iwzpsQ/viewform?embedded=true',
         'faq': 'https://docs.google.com/forms/d/e/1FAIpQLSfcAxFRRd7qFwwzQhJKMOgU6YDHiHbrP28jQpmmhHwZU98qdw/viewform?embedded=true',
-        // Add other wedding quiz iframes here
       },
-      sales: {
+      'sales': {
         'overview': 'https://docs.google.com/forms/d/e/1FAIpQLScfC0gSjqxKwiVyvWd4GmtBx051iGuiFZNbaHo8UmuA7MOFeA/viewform?embedded=true',
         'inquiry-response': 'https://docs.google.com/forms/d/e/1FAIpQLSdqHf29aM-V_oGHKYHWOcCCAahXNOaMR2Lj-TOq5WlKnAdadw/viewform?embedded=true',
         'qualification': 'https://docs.google.com/forms/d/e/1FAIpQLSc2lOV2L6RGeu4ZroY43MvoaxkdsLSjy3urEw2Xrs0vphYwGA/viewform?embedded=true',
@@ -71,20 +72,16 @@ function QuizEmbed() {
         'closing': 'https://docs.google.com/forms/d/e/1FAIpQLScj38rzqWea66IpxRLmJV7eQzmFBH37yWUl5MrRHghsX2MchA/viewform?embedded=true',
         'post-booking': 'https://docs.google.com/forms/d/e/1FAIpQLSdKbLbvxFdmxZGc7LJzsqyI9NABpg1ott0EBMKVXoGRDffQVQ/viewform?embedded=true',
         'crm-tips': 'https://docs.google.com/forms/d/e/1FAIpQLSdOwL8EU_2NGYi4UZ-2Ayx_GHysJkO51q-IY4l_ujcIrGsNdA/viewform?embedded=true',
-        // Add other sales quiz iframes here
       }
     };
     
-    return iframes[category]?.[id] || 'https://docs.google.com/forms/d/e/1FAIpQLSd8FTQdYFiqHHKLS20HRmIUzjgcVIqlIFgs16r4KNtHlSazIA/viewform?embedded=true';
+    return iframes[category]?.[quizId] || 'https://docs.google.com/forms/d/e/1FAIpQLSd8FTQdYFiqHHKLS20HRmIUzjgcVIqlIFgs16r4KNtHlSazIA/viewform?embedded=true';
   };
-  
-  const quizTitle = getQuizTitle(category, quizId);
-  const iframeSrc = getQuizIframe(category, quizId);
-  
-  // Get the iframe height based on the category and ID
-  const getQuizHeight = (category, id) => {
+
+  // Get the iframe height based on the quiz
+  const getIframeHeight = () => {
     const heights = {
-      weddings: {
+      'weddings': {
         'venue-overview': '1563',
         'clubhouse': '1679',
         'farmhouse': '1806',
@@ -95,9 +92,8 @@ function QuizEmbed() {
         'associated-events': '1436',
         'preferred-vendors': '1965',
         'faq': '2172',
-        // Add other wedding quiz heights here
       },
-      sales: {
+      'sales': {
         'overview': '3602',
         'inquiry-response': '1857',
         'qualification': '2061',
@@ -107,63 +103,12 @@ function QuizEmbed() {
         'closing': '2371',
         'post-booking': '2172',
         'crm-tips': '2748',
-        // Add other sales quiz heights here
       }
     };
     
-    return heights[category]?.[id] || '600';
+    return heights[category]?.[quizId] || '600';
   };
-  
-  const iframeHeight = getQuizHeight(category, quizId);
-  
-  // Check if this quiz is already completed
-  useEffect(() => {
-    const checkCompletionStatus = async () => {
-      if (!currentUser) {
-        setIsLoading(false);
-        return;
-      }
-      
-      try {
-        // Check localStorage first for quick access
-        const localCompletedQuizzes = JSON.parse(localStorage.getItem('completedQuizzes') || '{}');
-        const quizKey = `${category}-${quizId}`;
-        
-        if (localCompletedQuizzes[quizKey]) {
-          setIsCompleted(true);
-          setIsLoading(false);
-          return;
-        }
-        
-        // If not in localStorage, check Firestore
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userDoc = await getDoc(userRef);
-        
-        if (userDoc.exists() && userDoc.data().quizProgress) {
-          const quizProgress = userDoc.data().quizProgress;
-          const isQuizCompleted = quizProgress[quizKey]?.completed || false;
-          
-          setIsCompleted(isQuizCompleted);
-          
-          // Update localStorage if completed in Firestore
-          if (isQuizCompleted) {
-            localCompletedQuizzes[quizKey] = {
-              completedAt: quizProgress[quizKey]?.completedAt || new Date().toISOString(),
-              title: quizTitle
-            };
-            localStorage.setItem('completedQuizzes', JSON.stringify(localCompletedQuizzes));
-          }
-        }
-      } catch (error) {
-        console.error('Error checking quiz completion status:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkCompletionStatus();
-  }, [category, quizId, currentUser, quizTitle]);
-  
+
   if (isLoading) {
     return (
       <ContentPage title={quizTitle}>
@@ -173,7 +118,7 @@ function QuizEmbed() {
       </ContentPage>
     );
   }
-  
+
   return (
     <ContentPage title={quizTitle}>
       <div className="space-y-6">
@@ -185,7 +130,7 @@ function QuizEmbed() {
           <p className="text-gray-700 mb-4">
             After submitting the quiz, click the "Mark as Completed" button below to track your progress.
           </p>
-          {isCompleted && (
+          {isQuizCompleted(category, quizId) && (
             <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
               <strong className="font-bold">Completed!</strong>
               <span className="block sm:inline"> You have already completed this quiz.</span>
@@ -196,14 +141,15 @@ function QuizEmbed() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex justify-center">
             <iframe 
-              src={iframeSrc}
+              src={getIframeSource()}
               width="100%" 
-              height={iframeHeight} 
+              height={getIframeHeight()} 
               frameBorder="0" 
               marginHeight="0" 
               marginWidth="0"
               title={quizTitle}
               className="max-w-3xl mx-auto"
+              allowFullScreen
             >
               Loading…
             </iframe>
