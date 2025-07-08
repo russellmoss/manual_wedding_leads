@@ -1,4 +1,8 @@
-# Getting Started with Create React App
+# Manual Wedding Lead Entry System
+
+This project is a React web application for manually entering WeddingPro and The Knot leads, integrated with Klaviyo and Zapier.
+
+## Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
