@@ -125,5 +125,7 @@ Desktop.ini
 
 # Local development files
 proxy.js
+# But allow api/proxy.js for Vercel deployment
+!api/proxy.js
 
 .vercel
