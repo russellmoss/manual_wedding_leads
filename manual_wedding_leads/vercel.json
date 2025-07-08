@@ -10,11 +10,5 @@
       "src": "/api/(.*)",
       "dest": "/api/proxy.js"
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/((?!api|_next|_static|favicon.ico).*)",
-      "destination": "/index.html"
-    }
   ]
 } 
