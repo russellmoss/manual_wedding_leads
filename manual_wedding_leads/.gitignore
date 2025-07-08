@@ -125,3 +125,5 @@ Desktop.ini
 
 # Local development files
 proxy.js
+
+.vercel
