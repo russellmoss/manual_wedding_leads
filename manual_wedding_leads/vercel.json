@@ -2,26 +2,25 @@
   "version": 2,
   "builds": [
     {
-      "src": "manual_wedding_leads/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "manual_wedding_leads/build",
-        "cwd": "manual_wedding_leads"
+        "distDir": "build"
       }
     },
     {
-      "src": "manual_wedding_leads/proxy.js",
+      "src": "proxy.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/manual_wedding_leads/proxy.js"
+      "dest": "/proxy.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/manual_wedding_leads/index.html"
+      "dest": "/index.html"
     }
   ]
 } 
