@@ -22,8 +22,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "KLAVIYO_API_KEY": "@klaviyo_api_key"
-  }
+  ]
 } 
